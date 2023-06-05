@@ -1,0 +1,248 @@
+SELECT * 
+FROM dept;
+
+SELECT deptno FROM dept;
+
+SELECT *
+FROM emp;
+
+SELECT 
+		e.empno,
+		e.ename,
+		d.dname,
+		d.loc
+FROM 	emp e
+INNER JOIN DEPT d ON e.DEPTNO = d.DEPTNO;
+
+SELECT *
+FROM EMP 
+ORDER BY sal desc;
+/*number(전체자릿수,소수점자릿수)*/
+/* 테이블 조회하기*/
+SELECT * FROM EMP;
+
+SELECT * FROM BONUS;
+
+SELECT * FROM DEPT;
+
+SELECT * FROM SALGRADE;
+
+SELECT 
+		EMPNO,
+		ENAME,
+		SAL,
+		DEPTNO
+FROM EMP;
+
+SELECT 
+		EMPNO,
+		ENAME,
+		SAL 
+FROM 	EMP	WHERE SAL >= 3000;
+
+SELECT 
+		EMPNO,
+		ENAME,
+		SAL
+FROM 	EMP WHERE SAL >= 3000 AND SAL <= 5000;
+
+SELECT 	EMPNO,
+		ENAME,
+		SAL
+FROM	EMP WHERE ENAME LIKE '%L%' AND (SAL >= 3000 OR SAL <= 1500);
+
+SELECT 	EMPNO,
+		ENAME,
+		SAL
+FROM	EMP WHERE SAL >= 3000 OR SAL <= 1500 ORDER BY SAL DESC;
+		
+SELECT	ENAME,
+		UPPER(ENAME),
+		LOWER(ENAME)
+FROM EMP WHERE ENAME LIKE '%L%'; 
+
+SELECT 
+		ENAME,
+		LENGTH(ENAME)
+FROM 	EMP;
+
+/* 실습을 할때에도 바로 따라치지말고 예상결과를 머릿속에 떠올려 본 뒤에 쳐볼것*/
+SELECT 
+		JOB, 
+		SUBSTR(JOB, 1, 2),
+		SUBSTR(JOB, 3, 2),
+		SUBSTR(JOB, 5)  
+FROM	EMP;
+
+SELECT EMPNO,
+	   ENAME,
+	   RPAD(SUBSTR(ENAME, 1, LENGTH(ENAME)-2), LENGTH(ENAME), '*')  AS MASKING_NAME
+FROM EMP;
+
+SELECT 
+		NVL(comm,2),
+		sal+NVL(comm,0) 
+FROM emp;
+
+SELECT 
+		count(*)
+FROM	EMP
+WHERE 	job = 'MANAGER';
+
+CREATE TABLE emp_detail
+(
+   tel varchar2(20),
+   child number(2),
+   age number(3),
+   empno number(4)
+      -- 제약조건
+      CONSTRAINT emp_detail_EMP_EMPNO_fk -- 제약조건명
+         REFERENCES EMP -- 참조테이블과 참조할 컬럼(컬럼을 명시하지않으면 자동으로 pk를 참조)
+            ON DELETE cascade
+)
+
+SELECT * FROM emp;
+SELECT * FROM EMP_DETAIL ed ;
+
+INSERT INTO EMP_DETAIL(TEL, CHILD, AGE, EMPNO) VALUES('01079791212', 1, 32, 7654);
+
+SELECT * FROM emp;
+SELECT * FROM EMP_DETAIL;
+SELECT * FROM DEPT;
+
+/*사원 상세 정보가 존재하는 사원의 사번, 이름, 직업, 전화번호, 자녀수, 나이,부서명을 출력하시오 */
+/*from 뒤에 있는 테이블이 기준테이블*/
+SELECT 
+		e.empno,
+		e.ename,
+		e.job,
+		ed.tel,
+		ed.child,
+		ed.age,
+		d.dname
+FROM EMP e 
+INNER JOIN DEPT d ON e.DEPTNO = d.DEPTNO
+INNER JOIN EMP_DETAIL ed ON e.EMPNO  = ed.EMPNO;
+
+/*모든 사원의 사번, 이름, 직업, 전화번호, 자녀수, 나이, 부서명을 출력하시오*/
+SELECT	e.empno,
+		e.ename,
+		e.job,
+		e.DEPTNO,
+		ed.tel,
+		ed.age,
+		d.dname
+FROM EMP e  
+LEFT JOIN DEPT d ON e.empno = d.DEPTNO  
+LEFT JOIN EMP_DETAIL ed ON e.empno = ed.EMPNO ;
+
+SELECT 
+   e.EMPNO
+   , e.ENAME
+   , e.JOB
+   , ed.TEL
+   , ed.CHILD
+   , ed.AGE
+   , d.DNAME 
+FROM EMP e
+LEFT JOIN EMP_DETAIL ed ON e.EMPNO = ed.EMPNO
+INNER JOIN DEPT d ON e.DEPTNO = d.DEPTNO;
+
+/*자녀수가 0인 사원의 사원정보(emp,detail,dept)를 모두 출력하시오.*/
+SELECT 
+		e.EMPNO,
+		e.ENAME,
+		e.JOB,
+		e.MGR,
+		e.HIREDATE,
+		e.SAL,
+		e.COMM,
+		e.DEPTNO,
+		ed.TEL,
+		ed.CHILD,
+		ed.AGE,
+		d.DNAME,
+		d.LOC
+FROM EMP e 
+INNER JOIN EMP_DETAIL ed on e.EMPNO = ed.EMPNO
+INNER JOIN DEPT d ON e.DEPTNO  = d.DEPTNO WHERE child = 0 ;
+
+/*상세 정보가 없는 사원이 몇명인지 출력하시오*/
+SELECT COUNT(*)
+FROM EMP e
+LEFT JOIN EMP_DETAIL ed ON e.EMPNO = ed.EMPNO 
+WHERE ed.EMPNO  IS NULL;
+/*상세 정보가 잇는 사원이 평균 급여를 출력하시오*/
+SELECT AVG(NVL(e.SAL,0))
+FROM EMP e 
+INNER JOIN EMP_DETAIL ed ON e.EMPNO  = ed.EMPNO; 
+
+/*'Dallas'에서 근무하고 있는 사원들의 총 자녀 수를 출력하시오.*/
+SELECT SUM(NVL(ed.child,0))
+FROM EMP e
+INNER JOIN DEPT d ON e.DEPTNO = d.DEPTNO 
+INNER JOIN EMP_DETAIL ed  ON e.EMPNO = ed.EMPNO
+WHERE d.LOC  = 'DALLAS';
+
+SELECT empno
+	   ,ename
+	   ,sal
+	   ,(SELECT avg(sal) FROM EMP) AS avg
+FROM EMP
+WHERE sal > (SELECT avg(sal)FROM emp);
+
+INSERT INTO EMP_DETAIL(child, age, EMPNO) values(2,43,7566);
+
+SELECT * FROM EMP_DETAIL ed ;
+
+SELECT
+		*
+FROM 	EMP e;
+
+-- 주석은 '--' 기호 쓰기 
+DECLARE
+BEGIN
+	dbms_output.put_line('HELLO, PL/SQL');
+END;
+
+DECLARE
+	V_DEPTNO NUMBER(2) DEFAULT 10;
+BEGIN
+	DBMS_OUTPUT.PUT_LINE('VDEPTNO : ' || V_DEPTNO);
+END;
+
+DECLARE
+	V_DEPT_ROW DEPT%ROWTYPE;
+BEGIN
+	SELECT 
+			DEPTNO,
+			DNAME,
+			LOC
+	INTO V_DEPT_ROW
+	FROM DEPT d 
+	WHERE DEPTNO = 40;
+	DBMS_OUTPUT.PUT_LINE('DEPTNO : ' || V_DEPT_ROW.DEPTNO);
+	DBMS_OUTPUT.PUT_LINE('DNAME : ' || V_DEPT_ROW.DNAME);
+	DBMS_OUTPUT.PUT_LINE('LOC : ' || V_DEPT_ROW.LOC);
+END;
+
+DECLARE
+	V_SCORE NUMBER := 87;
+BEGIN
+	IF V_SCORE >= 90 THEN
+		DBMS_OUTPUT.PUT_LINE('A학점');
+	ELSIF V_SCORE >= 80 THEN
+		DBMS_OUTPUT.PUT_LINE('B학점');
+	ELSIF V_SCORE >= 70 THEN
+		DBMS_OUTPUT.PUT_LINE('C학점');
+	ELSIF V_SCORE >= 60 THEN
+		DBMS_OUTPUT.PUT_LINE('D학점');
+	ELSE 
+		DBMS_OUTPUT.PUT_LINE('F학점');
+	END IF;
+END;
+
+
+
+
+
